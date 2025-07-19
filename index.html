@@ -38,6 +38,18 @@
       font-size: 13px;
       opacity: 0.9;
     }
+    #debug {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 12px;
+      color: #eee;
+      background: rgba(0,0,0,0.6);
+      padding: 6px 8px;
+      border-radius: 6px;
+      max-width: 200px;
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
@@ -55,8 +67,10 @@
     <div class="wind" id="wind">💨 Wind: --</div>
   </div>
 
+  <div id="debug">Debug: waiting…</div>
+
   <script>
-    const API_KEY = 'e6b21ebf5f857a57434464784582e3dd'; // ← Swap in your Starter Plan key
+    const API_KEY = 'YOUR_API_KEY'; // ← Replace with your actual Starter Plan key
     const CITY_ID = '4161757'; // Miami Beach
 
     function formatTime(unixSeconds) {
@@ -70,23 +84,31 @@
     }
 
     async function updateWeather() {
+      const debug = document.getElementById('debug');
       try {
+        const ts = new Date().toLocaleTimeString();
         const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?id=${CITY_ID}&units=imperial&appid=${API_KEY}&_=${Date.now()}`);
         const data = await res.json();
 
-        document.getElementById('location').textContent = 'Miami Beach'; // Force override to fix OpenWeather's "Miami"
-        document.getElementById('temp').textContent = data?.main?.temp
-          ? `${Math.round(data.main.temp)}°F` : 'N/A';
-        document.getElementById('icon').src = data?.weather?.[0]?.icon
+        if (!data?.main?.temp || !data.name) {
+          throw new Error("Missing key data");
+        }
+
+        document.getElementById('location').textContent = 'Miami Beach'; // Force override label
+        document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°F`;
+        document.getElementById('icon').src = data.weather?.[0]?.icon
           ? `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png?v=${Date.now()}` : '';
-        document.getElementById('sunrise').textContent = data?.sys?.sunrise
+        document.getElementById('sunrise').textContent = data.sys?.sunrise
           ? `☀️ Sunrise: ${formatTime(data.sys.sunrise)}` : '☀️ Sunrise: N/A';
-        document.getElementById('sunset').textContent = data?.sys?.sunset
+        document.getElementById('sunset').textContent = data.sys?.sunset
           ? `🌙 Sunset: ${formatTime(data.sys.sunset)}` : '🌙 Sunset: N/A';
-        document.getElementById('wind').textContent = data?.wind?.speed
+        document.getElementById('wind').textContent = data.wind?.speed
           ? `💨 Wind: ${data.wind.speed.toFixed(1)} mph` : '💨 Wind: N/A';
+
+        debug.textContent = `✅ ${ts} — ${data.name}, ${Math.round(data.main.temp)}°F`;
       } catch (err) {
-        console.error('Weather fetch failed:', err);
+        debug.textContent = `❌ Fetch failed: ${err.message}`;
+        console.error('Weather fetch error:', err);
       }
     }
 
