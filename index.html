@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Weather Badge</title>
+  <meta http-equiv="cache-control" content="no-cache" />
+  <meta http-equiv="expires" content="0" />
+  <meta http-equiv="pragma" content="no-cache" />
+  <style>
+    body {
+      margin: 0;
+      background: transparent;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    .badge {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      min-width: 240px;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .location {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .temp, .time {
+      font-size: 15px;
+    }
+    .sun-line, .wind {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="badge">
+    <div class="row">
+      <img id="icon" src="" alt="Weather Icon" width="36" height="36" />
+      <div>
+        <div class="location" id="location">--</div>
+        <div class="time" id="time">--:--</div>
+        <div class="temp" id="temp">--°F</div>
+      </div>
+    </div>
+    <div class="sun-line" id="sunrise">☀️ Sunrise: --</div>
+    <div class="sun-line" id="sunset">🌙 Sunset: --</div>
+    <div class="wind" id="wind">💨 Wind: --</div>
+  </div>
+
+  <script>
+    const API_KEY = 'YOUR_API_KEY'; // Replace this with your actual OpenWeather key
+    const CITY_ID = '5128581'; // New York City
+
+    function formatTime(unixSeconds) {
+      const date = new Date(unixSeconds * 1000);
+      return date.toLocaleTimeString('en-US', {
+        timeZone: 'America/New_York',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+
+    async function updateWeather() {
+      try {
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?id=${CITY_ID}&units=imperial&appid=${API_KEY}&_=${Date.now()}`);
+        const data = await res.json();
+
+        document.getElementById('location').textContent = data?.name ?? 'Unknown';
+        document.getElementById('temp').textContent = data?.main?.temp
+          ? `${Math.round(data.main.temp)}°F` : 'N/A';
+        document.getElementById('icon').src = data?.weather?.[0]?.icon
+          ? `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png?v=${Date.now()}` : '';
+        document.getElementById('sunrise').textContent = data?.sys?.sunrise
+          ? `☀️ Sunrise: ${formatTime(data.sys.sunrise)}` : '☀️ Sunrise: N/A';
+        document.getElementById('sunset').textContent = data?.sys?.sunset
+          ? `🌙 Sunset: ${formatTime(data.sys.sunset)}` : '🌙 Sunset: N/A';
+        document.getElementById('wind').textContent = data?.wind?.speed
+          ? `💨 Wind: ${data.wind.speed.toFixed(1)} mph` : '💨 Wind: N/A';
+      } catch (err) {
+        console.error('Weather fetch failed:', err);
+      }
+    }
+
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('time').textContent = now.toLocaleTimeString('en-US', {
+        timeZone: 'America/New_York',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateWeather();
+      updateTime();
+      setInterval(updateTime, 60000);
+      setInterval(updateWeather, 300000);
+    });
+  </script>
+</body>
+</html>
