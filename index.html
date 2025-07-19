@@ -50,6 +50,16 @@
       max-width: 200px;
       font-family: monospace;
     }
+    #status-dot {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: gray;
+      border: 1px solid #ccc;
+    }
   </style>
 </head>
 <body>
@@ -68,9 +78,10 @@
   </div>
 
   <div id="debug">Debug: waiting…</div>
+  <div id="status-dot"></div>
 
   <script>
-    const API_KEY = 'YOUR_API_KEY'; // ← Replace with your actual Starter Plan key
+    const API_KEY = '458137f6ac5ae1ad747e067cdf8a92c4'; // ← Swap in your Starter Plan key
     const CITY_ID = '4161757'; // Miami Beach
 
     function formatTime(unixSeconds) {
@@ -85,6 +96,7 @@
 
     async function updateWeather() {
       const debug = document.getElementById('debug');
+      const dot = document.getElementById('status-dot');
       try {
         const ts = new Date().toLocaleTimeString();
         const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?id=${CITY_ID}&units=imperial&appid=${API_KEY}&_=${Date.now()}`);
@@ -94,7 +106,7 @@
           throw new Error("Missing key data");
         }
 
-        document.getElementById('location').textContent = 'Miami Beach'; // Force override label
+        document.getElementById('location').textContent = 'Miami Beach';
         document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°F`;
         document.getElementById('icon').src = data.weather?.[0]?.icon
           ? `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png?v=${Date.now()}` : '';
@@ -106,8 +118,10 @@
           ? `💨 Wind: ${data.wind.speed.toFixed(1)} mph` : '💨 Wind: N/A';
 
         debug.textContent = `✅ ${ts} — ${data.name}, ${Math.round(data.main.temp)}°F`;
+        dot.style.background = 'limegreen';
       } catch (err) {
         debug.textContent = `❌ Fetch failed: ${err.message}`;
+        dot.style.background = 'red';
         console.error('Weather fetch error:', err);
       }
     }
