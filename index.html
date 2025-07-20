@@ -117,10 +117,10 @@
         document.getElementById('wind').textContent = data.wind?.speed
           ? `💨 Wind: ${data.wind.speed.toFixed(1)} mph` : '💨 Wind: N/A';
 
-        debug.textContent = `✅ ${ts} — ${data.name}, ${Math.round(data.main.temp)}°F`;
+        debug.textContent = `✅`;
         dot.style.background = 'limegreen';
       } catch (err) {
-        debug.textContent = `❌ Fetch failed: ${err.message}`;
+        debug.textContent = `❌`;
         dot.style.background = 'red';
         console.error('Weather fetch error:', err);
       }
