@@ -99,7 +99,7 @@
       const dot = document.getElementById('status-dot');
       try {
         const ts = new Date().toLocaleTimeString();
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Miami%20Beach&units=imperial&appid=${6f6de3f249f61942a63e42cd76f89252}`);
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Miami%20Beach&units=imperial&appid=$6f6de3f249f61942a63e42cd76f89252`);
         const data = await res.json();
 
         if (!data?.main?.temp || !data.name) {
