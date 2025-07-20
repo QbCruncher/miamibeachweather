@@ -13,6 +13,7 @@
       background: transparent;
       font-family: 'Open Sans', sans-serif;
       color: white;
+      -webkit-font-smoothing: antialiased;
     }
     .badge {
       display: flex;
@@ -29,18 +30,27 @@
       gap: 10px;
     }
     .location {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: bold;
     }
     .temp, .time {
       font-size: 15px;
     }
     .info {
-  font-size: 15px;
-  color: white;
-  font-weight: normal; /* or bold if you want consistency with .location */
-  margin-top: 2px;
-}
+      font-size: 15px;
+      color: white;
+      font-weight: normal;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+    }
+    .info span.icon {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body>
@@ -51,8 +61,8 @@
         <div class="location" id="location">Miami Beach</div>
         <div class="time" id="time">--:--</div>
         <div class="temp" id="temp">--°F</div>
-        <div class="info">🌅 Sunset: <span id="sunset">--:--</span></div>
-        <div class="info">🌊 Next H/L Tide: <span id="tidepair">--/--</span></div>
+        <div class="info"><span class="icon">🌅</span>Sunset: <span id="sunset">--:--</span></div>
+        <div class="info"><span class="icon">🌊</span>Next H/L Tide: <span id="tidepair">--/--</span></div>
       </div>
     </div>
   </div>
