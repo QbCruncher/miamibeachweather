@@ -41,16 +41,18 @@
 </head>
 <body>
   <div class="badge">
-    <div class="row">
-      <img id="icon" src="" alt="Weather Icon" width="36" height="36" />
-      <div>
-        <div class="location" id="location">Miami Beach</div>
-        <div class="time" id="time">--:--</div>
-        <div class="temp" id="temp">--°F</div>
-      </div>
+  <div class="row">
+    <img id="icon" src="" alt="Weather Icon" width="36" height="36" />
+    <div>
+      <div class="location" id="location">Miami Beach</div>
+      <div class="time" id="time">--:--</div>
+      <div class="temp" id="temp">--°F</div>
+      <div class="info">Sunset: <span id="sunset">--:--</span></div>
+      <div class="info">Next Low Tide: <span id="lowtide">--:--</span></div>
     </div>
   </div>
-
+</div>
+  
   <script>
     const API_KEY = '6f6de3f249f61942a63e42cd76f89252';
     const CITY = 'Miami Beach';
