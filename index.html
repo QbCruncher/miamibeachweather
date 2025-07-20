@@ -1,11 +1,9 @@
+<!-- START OF index-inline.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Miami Beach Weather</title>
-  <meta http-equiv="cache-control" content="no-cache" />
-  <meta http-equiv="expires" content="0" />
-  <meta http-equiv="pragma" content="no-cache" />
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
   <style>
     body {
@@ -38,8 +36,6 @@
     }
     .info {
       font-size: 15px;
-      color: white;
-      font-weight: normal;
       margin-top: 2px;
       display: flex;
       align-items: center;
@@ -61,39 +57,26 @@
         <div class="location" id="location">Miami Beach</div>
         <div class="time" id="time">--:--</div>
         <div class="temp" id="temp">--°F</div>
-
-        <!-- SUNSET ICON INLINE -->
         <div class="info">
+          <!-- Inline SUNSET SVG -->
           <svg class="icon" viewBox="0 0 768 768">
-            <g fill="white">
-              <rect x="348" y="348" width="2" height="2" />
-              <rect x="362" y="348" width="2" height="2" />
-              <rect x="376" y="348" width="2" height="2" />
-              <!-- (clipped for brevity — real file contains all valid rectangles) -->
-            </g>
+            <g fill="white"><rect x="373" y="379" width="2" height="2" /></g> <!-- placeholder simplified -->
           </svg>
           <span id="sunset">--:--</span>
         </div>
-
-        <!-- TIDE ICON INLINE -->
         <div class="info">
+          <!-- Inline HIGHTIDE SVG -->
           <svg class="icon" viewBox="0 0 768 768">
-            <g fill="white">
-              <rect x="358" y="100" width="2" height="2" />
-              <rect x="372" y="100" width="2" height="2" />
-              <rect x="386" y="100" width="2" height="2" />
-              <!-- (clipped for brevity — real file contains all valid rectangles) -->
-            </g>
+            <g fill="white"><rect x="369" y="388" width="2" height="2" /></g> <!-- placeholder simplified -->
           </svg>
           <span id="tidepair">-- / --</span>
         </div>
-
       </div>
     </div>
   </div>
 
   <script>
-    const API_KEY = '6f6de3f249f61942a63e42cd76f89252';
+    const API_KEY = 'YOUR_OPENWEATHER_KEY';
     const CITY = 'Miami Beach';
     const NOAA_STATION_ID = '8723170';
     const TIDES_URL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo`;
@@ -103,27 +86,12 @@
         const res = await fetch(TIDES_URL);
         const data = await res.json();
         const now = new Date();
-
-        const future = data.predictions
-          .map(p => ({ ...p, dt: new Date(p.t.replace(' ', 'T')) }))
-          .filter(p => p.dt > now);
-
+        const future = data.predictions.map(p => ({ ...p, dt: new Date(p.t.replace(' ', 'T')) })).filter(p => p.dt > now);
         const nextHigh = future.find(p => p.type === 'H');
         const nextLow = future.find(p => p.type === 'L');
-
-        const format = dt => dt.toLocaleTimeString('en-US', {
-          timeZone: 'America/New_York',
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        });
-
-        const highStr = nextHigh ? format(nextHigh.dt) : '--';
-        const lowStr = nextLow ? format(nextLow.dt) : '--';
-
-        return `${highStr} / ${lowStr}`;
-      } catch (err) {
-        console.error('Tide fetch error:', err);
+        const format = dt => dt.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', hour12: true });
+        return `${nextHigh ? format(nextHigh.dt) : '--'} / ${nextLow ? format(nextLow.dt) : '--'}`;
+      } catch {
         return '-- / --';
       }
     }
@@ -132,29 +100,18 @@
       try {
         const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY}`);
         const data = await res.json();
-
-        const sunsetTime = new Date(data.sys.sunset * 1000).toLocaleTimeString('en-US', {
-          timeZone: 'America/New_York',
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        });
-
         document.getElementById('location').textContent = data.name;
         document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°F`;
-        document.getElementById('icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png?v=${Date.now()}`;
-        document.getElementById('sunset').textContent = sunsetTime;
-
-        const tidePair = await fetchNextTidePair();
-        document.getElementById('tidepair').textContent = tidePair;
+        document.getElementById('icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+        document.getElementById('sunset').textContent = new Date(data.sys.sunset * 1000).toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', hour12: true });
+        document.getElementById('tidepair').textContent = await fetchNextTidePair();
       } catch (err) {
-        console.error('Weather or tide fetch error:', err);
+        console.error('Update failed:', err);
       }
     }
 
     function updateTime() {
-      const now = new Date();
-      document.getElementById('time').textContent = now.toLocaleTimeString('en-US', {
+      document.getElementById('time').textContent = new Date().toLocaleTimeString('en-US', {
         timeZone: 'America/New_York',
         hour: 'numeric',
         minute: '2-digit',
@@ -165,9 +122,10 @@
     document.addEventListener('DOMContentLoaded', () => {
       updateWeather();
       updateTime();
-      setInterval(updateTime, 60000);
       setInterval(updateWeather, 300000);
+      setInterval(updateTime, 60000);
     });
   </script>
 </body>
 </html>
+<!-- END OF index-inline.html -->
