@@ -6,7 +6,6 @@
   <meta http-equiv="cache-control" content="no-cache" />
   <meta http-equiv="expires" content="0" />
   <meta http-equiv="pragma" content="no-cache" />
-
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
 
   <style>
@@ -62,9 +61,9 @@
     const API_KEY = '6f6de3f249f61942a63e42cd76f89252'; // Your OpenWeather API key
     const CITY = 'Miami Beach';
     
-    // Use the reliable NOAA API for Tides instead of scraping
+    // ✅ FIXED: Added interval=hilo to get tide types (H/L)
     const NOAA_STATION_ID = '8723170'; // Station ID for Miami Beach, Government Cut
-    const TIDES_URL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json`;
+    const TIDES_URL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo`;
 
     /**
      * Fetches the next low tide time from the NOAA API.
@@ -76,19 +75,16 @@
         if (!res.ok) throw new Error(`API request failed`);
         const data = await res.json();
 
-        // Ensure predictions data exists
         if (!data?.predictions) {
-            console.error('Invalid tide data received from NOAA API.');
-            return '--:--';
+          console.error('Invalid tide data received from NOAA API.');
+          return '--:--';
         }
 
         const now = new Date();
-        // Find the first prediction for a low tide ('L') that is in the future
-        const nextLowTide = data.predictions.find(p => p.type === 'L' && new Date(p.t) > now);
+        const nextLowTide = data.predictions.find(p => p.type === 'L' && new Date(p.t.replace(' ', 'T')) > now);
 
         if (nextLowTide) {
-          const tideTime = new Date(nextLowTide.t);
-          // Format the time to be consistent with the other times on the badge
+          const tideTime = new Date(nextLowTide.t.replace(' ', 'T'));
           return tideTime.toLocaleTimeString('en-US', {
             timeZone: 'America/New_York',
             hour: 'numeric',
@@ -96,8 +92,7 @@
             hour12: true
           });
         }
-        
-        // Return a default value if no more low tides are scheduled for today
+
         return 'None today';
       } catch (err) {
         console.error('Tide fetch error:', err);
@@ -149,8 +144,8 @@
     document.addEventListener('DOMContentLoaded', () => {
       updateWeather();
       updateTime();
-      setInterval(updateTime, 60000); // Update time every minute
-      setInterval(updateWeather, 300000); // Update weather every 5 minutes
+      setInterval(updateTime, 60000);       // Update time every minute
+      setInterval(updateWeather, 300000);   // Update weather every 5 minutes
     });
   </script>
 </body>
