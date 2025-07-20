@@ -99,7 +99,7 @@
       const dot = document.getElementById('status-dot');
       try {
         const ts = new Date().toLocaleTimeString();
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY}`);
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=d43f4124aeb42f96029078b44d66bcc8`);
         const data = await res.json();
 
         if (!data?.main?.temp || !data.name) {
