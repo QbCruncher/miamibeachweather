@@ -60,8 +60,8 @@
         <div class="location" id="location">Miami Beach</div>
         <div class="time" id="time">--:--</div>
         <div class="temp" id="temp">--°F</div>
-        <div class="info"><img id="sunsetIcon" class="icon" alt="Sunset" /><span id="sunset">--:--</span></div>
-        <div class="info"><img id="tideIcon" class="icon" alt="Tide" /><span id="tidepair">-- / --</span></div>
+        <div class="info"><img src="sunset.png" class="icon" alt="Sunset" /><span id="sunset">--:--</span></div>
+        <div class="info"><img src="hightide.png" class="icon" alt="Tide" /><span id="tidepair">-- / --</span></div>
       </div>
     </div>
   </div>
@@ -70,19 +70,7 @@
     const API_KEY = '6f6de3f249f61942a63e42cd76f89252';
     const CITY = 'Miami Beach';
     const NOAA_STATION_ID = '8723170';
-    const TIDES_URL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo`;
-
-    // Try loading SVG if PNG fails
-    function setWeatherIcons() {
-      const sunsetImg = document.getElementById('sunsetIcon');
-      const tideImg = document.getElementById('tideIcon');
-
-      sunsetImg.src = 'sunset.png';
-      sunsetImg.onerror = () => (sunsetImg.src = 'sunset.svg');
-
-      tideImg.src = 'hightide.png';
-      tideImg.onerror = () => (tideImg.src = 'hightide.svg');
-    }
+    const TIDES_URL = https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo;
 
     async function fetchNextTidePair() {
       try {
@@ -107,7 +95,7 @@
         const highStr = nextHigh ? format(nextHigh.dt) : '--';
         const lowStr = nextLow ? format(nextLow.dt) : '--';
 
-        return `${highStr} / ${lowStr}`;
+        return ${highStr} / ${lowStr};
       } catch (err) {
         console.error('Tide fetch error:', err);
         return '-- / --';
@@ -116,7 +104,7 @@
 
     async function updateWeather() {
       try {
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY}`);
+        const res = await fetch(https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY});
         const data = await res.json();
 
         const sunsetTime = new Date(data.sys.sunset * 1000).toLocaleTimeString('en-US', {
@@ -127,8 +115,8 @@
         });
 
         document.getElementById('location').textContent = data.name;
-        document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°F`;
-        document.getElementById('icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png?v=${Date.now()}`;
+        document.getElementById('temp').textContent = ${Math.round(data.main.temp)}°F;
+        document.getElementById('icon').src = https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png?v=${Date.now()};
         document.getElementById('sunset').textContent = sunsetTime;
 
         const tidePair = await fetchNextTidePair();
@@ -149,7 +137,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      setWeatherIcons();
       updateWeather();
       updateTime();
       setInterval(updateTime, 60000);
