@@ -35,13 +35,11 @@
     }
     .info {
       font-size: 15px;
-      color: white;
-      font-weight: normal;
       margin-top: 2px;
       display: flex;
       align-items: center;
     }
-    .info svg.icon {
+    .info svg {
       width: 1em;
       height: 1em;
       margin-right: 6px;
@@ -59,26 +57,20 @@
         <div class="time" id="time">--:--</div>
         <div class="temp" id="temp">--°F</div>
 
-        <!-- Inline sunset SVG -->
+        <!-- Inline SUNSET SVG -->
         <div class="info">
-          <!-- Paste of sunset-inline.svg -->
-          <svg class="icon" viewBox="0 0 768 768">
-            <g fill="white">
-              <rect x="376" y="362" width="3" height="3"/>
-              <rect x="379" y="362" width="3" height="3"/>
-              <rect x="382" y="362" width="3" height="3"/>
-              <rect x="388" y="362" width="3" height="3"/>
-              <!-- (only partial; full inline content from SVG file recommended) -->
-            </g>
-          </svg>
+          <!-- sunset -->
+          {{sunset_svg}}
           <span id="sunset">--:--</span>
         </div>
 
-        <!-- External tide icon reference -->
+        <!-- Inline HIGHTIDE SVG -->
         <div class="info">
-          <img src="hightide.svg" class="icon" alt="Tide" />
+          <!-- hightide -->
+          {{hightide_svg}}
           <span id="tidepair">-- / --</span>
         </div>
+
       </div>
     </div>
   </div>
@@ -94,11 +86,25 @@
         const res = await fetch(TIDES_URL);
         const data = await res.json();
         const now = new Date();
-        const future = data.predictions.map(p => ({ ...p, dt: new Date(p.t.replace(' ', 'T')) })).filter(p => p.dt > now);
+
+        const future = data.predictions
+          .map(p => ({ ...p, dt: new Date(p.t.replace(' ', 'T')) }))
+          .filter(p => p.dt > now);
+
         const nextHigh = future.find(p => p.type === 'H');
         const nextLow = future.find(p => p.type === 'L');
-        const format = dt => dt.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', hour12: true });
-        return `${nextHigh ? format(nextHigh.dt) : '--'} / ${nextLow ? format(nextLow.dt) : '--'}`;
+
+        const format = dt => dt.toLocaleTimeString('en-US', {
+          timeZone: 'America/New_York',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+
+        const highStr = nextHigh ? format(nextHigh.dt) : '--';
+        const lowStr = nextLow ? format(nextLow.dt) : '--';
+
+        return `${highStr} / ${lowStr}`;
       } catch {
         return '-- / --';
       }
@@ -108,13 +114,23 @@
       try {
         const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY}`);
         const data = await res.json();
+
+        const sunsetTime = new Date(data.sys.sunset * 1000).toLocaleTimeString('en-US', {
+          timeZone: 'America/New_York',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+
         document.getElementById('location').textContent = data.name;
         document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°F`;
         document.getElementById('icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-        document.getElementById('sunset').textContent = new Date(data.sys.sunset * 1000).toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', hour12: true });
-        document.getElementById('tidepair').textContent = await fetchNextTidePair();
+        document.getElementById('sunset').textContent = sunsetTime;
+
+        const tidePair = await fetchNextTidePair();
+        document.getElementById('tidepair').textContent = tidePair;
       } catch (err) {
-        console.error('Update failed:', err);
+        console.error('Weather or tide fetch error:', err);
       }
     }
 
