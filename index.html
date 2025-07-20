@@ -49,7 +49,6 @@
       height: 1em;
       margin-right: 6px;
       vertical-align: middle;
-      filter: invert(1); /* ensures white-on-dark for black SVGs */
     }
   </style>
 </head>
@@ -61,19 +60,8 @@
         <div class="location" id="location">Miami Beach</div>
         <div class="time" id="time">--:--</div>
         <div class="temp" id="temp">--°F</div>
-
-        <!-- External sunset icon -->
-        <div class="info">
-          <img src="sunset.svg" class="icon" alt="Sunset" />
-          <span id="sunset">--:--</span>
-        </div>
-
-        <!-- External tide icon -->
-        <div class="info">
-          <img src="hightide.svg" class="icon" alt="Tide" />
-          <span id="tidepair">-- / --</span>
-        </div>
-
+        <div class="info"><img id="sunsetIcon" class="icon" alt="Sunset" /><span id="sunset">--:--</span></div>
+        <div class="info"><img id="tideIcon" class="icon" alt="Tide" /><span id="tidepair">-- / --</span></div>
       </div>
     </div>
   </div>
@@ -83,6 +71,18 @@
     const CITY = 'Miami Beach';
     const NOAA_STATION_ID = '8723170';
     const TIDES_URL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo`;
+
+    // Try loading SVG if PNG fails
+    function setWeatherIcons() {
+      const sunsetImg = document.getElementById('sunsetIcon');
+      const tideImg = document.getElementById('tideIcon');
+
+      sunsetImg.src = 'sunset.png';
+      sunsetImg.onerror = () => (sunsetImg.src = 'sunset.svg');
+
+      tideImg.src = 'hightide.png';
+      tideImg.onerror = () => (tideImg.src = 'hightide.svg');
+    }
 
     async function fetchNextTidePair() {
       try {
@@ -149,6 +149,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      setWeatherIcons();
       updateWeather();
       updateTime();
       setInterval(updateTime, 60000);
