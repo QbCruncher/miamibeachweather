@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Miami Beach Weather Badge</title>
+  <title>Miami Beach Weather</title>
   <meta http-equiv="cache-control" content="no-cache" />
   <meta http-equiv="expires" content="0" />
   <meta http-equiv="pragma" content="no-cache" />
@@ -34,32 +34,6 @@
     .temp, .time {
       font-size: 15px;
     }
-    .sun-line, .wind {
-      font-size: 13px;
-      opacity: 0.9;
-    }
-    #debug {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 12px;
-      color: #eee;
-      background: rgba(0,0,0,0.6);
-      padding: 6px 8px;
-      border-radius: 6px;
-      max-width: 200px;
-      font-family: monospace;
-    }
-    #status-dot {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: gray;
-      border: 1px solid #ccc;
-    }
   </style>
 </head>
 <body>
@@ -72,56 +46,25 @@
         <div class="temp" id="temp">--°F</div>
       </div>
     </div>
-    <div class="sun-line" id="sunrise">☀️ Sunrise: --</div>
-    <div class="sun-line" id="sunset">🌙 Sunset: --</div>
-    <div class="wind" id="wind">💨 Wind: --</div>
   </div>
-
-  <div id="debug">Debug: waiting…</div>
-  <div id="status-dot"></div>
 
   <script>
     const API_KEY = 'd43f4124aeb42f96029078b44d66bcc8';
     const CITY = 'Miami Beach';
 
-    function formatTime(unixSeconds) {
-      const date = new Date(unixSeconds * 1000);
-      return date.toLocaleTimeString('en-US', {
-        timeZone: 'America/New_York',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      });
-    }
-
     async function updateWeather() {
-      const debug = document.getElementById('debug');
-      const dot = document.getElementById('status-dot');
       try {
-        const ts = new Date().toLocaleTimeString();
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=d43f4124aeb42f96029078b44d66bcc8`);
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY}`);
         const data = await res.json();
 
-        if (!data?.main?.temp || !data.name) {
-          throw new Error("Missing key data");
-        }
+        if (!data?.main?.temp || !data.name) throw new Error("Missing key data");
 
         document.getElementById('location').textContent = data.name;
         document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°F`;
         document.getElementById('icon').src = data.weather?.[0]?.icon
-          ? `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png?v=${Date.now()}` : '';
-        document.getElementById('sunrise').textContent = data.sys?.sunrise
-          ? `☀️ Sunrise: ${formatTime(data.sys.sunrise)}` : '☀️ Sunrise: N/A';
-        document.getElementById('sunset').textContent = data.sys?.sunset
-          ? `🌙 Sunset: ${formatTime(data.sys.sunset)}` : '🌙 Sunset: N/A';
-        document.getElementById('wind').textContent = data.wind?.speed
-          ? `💨 Wind: ${data.wind.speed.toFixed(1)} mph` : '💨 Wind: N/A';
-
-        debug.textContent = `✅`;
-        dot.style.background = 'limegreen';
+          ? `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png?v=${Date.now()}`
+          : '';
       } catch (err) {
-        debug.textContent = `❌`;
-        dot.style.background = 'red';
         console.error('Weather fetch error:', err);
       }
     }
