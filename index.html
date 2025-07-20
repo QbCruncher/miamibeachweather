@@ -106,7 +106,7 @@
           throw new Error("Missing key data");
         }
 
-        document.getElementById('location').textContent = 'Miami Beach';
+        document.getElementById('location').textContent = 'MiamiBeach';
         document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°F`;
         document.getElementById('icon').src = data.weather?.[0]?.icon
           ? `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png?v=${Date.now()}` : '';
