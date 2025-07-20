@@ -93,32 +93,54 @@
         return '--';
       }
     }
+async function fetchNextTides() {
+  const now = new Date();
+  const today = now.toISOString().split("T")[0];
+  const url = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=8723170&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo&date=${today}`;
 
-    async function updateAll() {
-      try {
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY}`);
-        const data = await res.json();
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
 
-        const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString('en-US', {
-          timeZone: 'America/New_York',
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        });
+    console.log("⛵ NOAA raw predictions:", data.predictions);
+    if (!data.predictions) return '--';
 
-        document.getElementById('location').textContent = data.name;
-        document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°F`;
-        document.getElementById('icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-        document.getElementById('sunset').textContent = sunset;
+    const future = data.predictions
+      .map(p => {
+        const dt = new Date(p.t.replace(' ', 'T'));
+        console.log(`  - ${p.type} at ${p.t} → parsed: ${dt.toISOString()}`);
+        return { ...p, dt };
+      })
+      .filter(p => p.dt > now);
 
-        const tideInfo = await fetchNextTides();
-        document.getElementById('tides').textContent = tideInfo;
+    console.log("🌊 Future events:", future);
 
-      } catch (e) {
-        console.error('Weather or tide update failed', e);
-      }
+    const nextLow = future.find(p => p.type === 'L');
+    const nextHigh = future.find(p => p.type === 'H');
+
+    if (!nextLow && !nextHigh) {
+      console.warn("⚠️ No upcoming tides found.");
+      return '--';
     }
 
+    const format = dt => dt.toLocaleTimeString('en-US', {
+      timeZone: 'America/New_York',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    const lowText = nextLow ? `${format(nextLow.dt)} (Low)` : '';
+    const highText = nextHigh ? `${format(nextHigh.dt)} (High)` : '';
+    const final = [highText, lowText].filter(Boolean).join(', ');
+    console.log("✅ Final Tide String:", final);
+
+    return final;
+  } catch (err) {
+    console.error('💥 Tide fetch error:', err);
+    return '--';
+  }
+}
     function updateTime() {
       const now = new Date();
       document.getElementById('time').textContent = now.toLocaleTimeString('en-US', {
