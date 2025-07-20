@@ -33,53 +33,41 @@
   <script>
     const API_KEY = '6f6de3f249f61942a63e42cd76f89252';
     const CITY = 'Miami Beach';
-    const NOAA_STATION = '8723170';  // Miami Beach station ID
+    const NOAA_STATION = '8723170';
 
-    async function fetchLowTide() {
-      const now = new Date();
-      const start = now.toISOString().slice(0,10);
-      const url = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=${NOAA_STATION}&time_zone=lst_ldt&units=english&format=json&interval=hilo&date=${start}`;
-      try {
-        let res = await fetch(url);
-        let data = await res.json();
-        let next = data.predictions.find(t => {
-          let dt = new Date(t.t);
-          return dt > now && t.type === 'L';
-        });
-        return next ? new Date(next.t).toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', hour12:true }) : '--:--';
-      } catch(err) {
-        console.error('Low tide fetch error:', err);
-        return '--:--';
-      }
+    async function getLowTide() {
+      const date = new Date().toISOString().slice(0,10);
+      const url = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=${NOAA_STATION}&time_zone=lst_ldt&units=english&format=json&interval=hilo&date=${date}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (!json.predictions) return '--:--';
+      const nextLow = json.predictions.find(p => p.type === 'L' && new Date(p.t) > new Date());
+      return nextLow
+        ? new Date(nextLow.t).toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit', hour12:true})
+        : '--:--';
     }
 
     async function updateAll() {
       try {
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY}`);
-        const w = await res.json();
-
-        if (!w.main?.temp || !w.sys?.sunset) throw new Error('Weather missing keys');
-
-        const sunset = new Date(w.sys.sunset * 1000)
-          .toLocaleTimeString('en-US', { timeZone:'America/New_York', hour:'numeric', minute:'2-digit', hour12:true });
+        const wRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY}`);
+        const w = await wRes.json();
+        const sunset = new Date(w.sys.sunset * 1000).toLocaleTimeString('en-US', {timeZone:'America/New_York', hour:'numeric', minute:'2-digit', hour12:true});
 
         document.getElementById('location').textContent = w.name;
         document.getElementById('temp').textContent = `${Math.round(w.main.temp)}°F`;
         document.getElementById('icon').src = `https://openweathermap.org/img/wn/${w.weather[0].icon}@2x.png`;
         document.getElementById('sunset').textContent = sunset;
 
-        const low = await fetchLowTide();
-        document.getElementById('lowtide').textContent = low;
-
-      } catch(err) {
-        console.error('Error updating weather/tide:', err);
+        document.getElementById('lowtide').textContent = await getLowTide();
+      } catch (e) {
+        console.error('Update error', e);
       }
     }
 
     function updateTime() {
       const now = new Date();
-      document.getElementById('time').textContent = now.toLocaleTimeString('en-US', {
-        timeZone:'America/New_York', hour:'numeric', minute:'2-digit', hour12:true });
+      document.getElementById('time').textContent =
+        now.toLocaleTimeString('en-US', {timeZone:'America/New_York', hour:'numeric', minute:'2-digit', hour12:true});
     }
 
     document.addEventListener('DOMContentLoaded', () => {
