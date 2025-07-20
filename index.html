@@ -40,7 +40,7 @@
     const CITY = 'Miami Beach,US';
 
     async function updateWeather() {
-      const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY}`);
+      const r = await fetch(`http://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY}`);
       const d = await r.json();
       document.getElementById('temp').textContent = Math.round(d.main.temp) + '°F';
       document.getElementById('icon').src = `https://openweathermap.org/img/wn/${d.weather[0].icon}@2x.png`;
