@@ -65,60 +65,15 @@
   <div class="temp" id="temp">--°F</div>
 </div>
       <div>
-
-        <!-- External SUNSET ICON -->
-        <div class="info">
-          <img src="sunset.svg" class="icon" alt="Sunset" />
-          <span id="sunset">--:--</span>
-        </div>
-
-        <!-- External HIGH TIDE ICON + TIME -->
-        <div class="info">
-          <img src="hightide.svg" class="icon" alt="High Tide" />
-          <span id="highTideTime">--:--</span>
-        </div>
-
-        <!-- External LOW TIDE ICON + TIME -->
-        <div class="info">
-          <img src="lowtide.svg" class="icon" alt="Low Tide" />
-          <span id="lowTideTime">--:--</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script>
     const API_KEY = '6f6de3f249f61942a63e42cd76f89252';
     const CITY = 'Miami Beach';
-    const NOAA_STATION_ID = '8723170';
-    const TIDES_URL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo`;
-
-    async function fetchNextTidePair() {
-      try {
-        const res = await fetch(TIDES_URL);
-        const data = await res.json();
-        const now = new Date();
-
-        const future = data.predictions
-          .map(p => ({ ...p, dt: new Date(p.t.replace(' ', 'T')) }))
-          .filter(p => p.dt > now);
-
-        const nextHigh = future.find(p => p.type === 'H');
-        const nextLow = future.find(p => p.type === 'L');
-
         const format = dt => dt.toLocaleTimeString('en-US', {
           timeZone: 'America/New_York',
           hour: 'numeric',
           minute: '2-digit',
           hour12: true
         });
-
-        document.getElementById('highTideTime').textContent = nextHigh ? format(nextHigh.dt) : '--:--';
-        document.getElementById('lowTideTime').textContent = nextLow ? format(nextLow.dt) : '--:--';
-      } catch {
-        document.getElementById('highTideTime').textContent = '--:--';
-        document.getElementById('lowTideTime').textContent = '--:--';
-      }
     }
 
     async function updateWeather() {
@@ -136,12 +91,7 @@
         document.getElementById('location').textContent = data.name;
         document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°F`;
         document.getElementById('icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-        document.getElementById('sunset').textContent = sunsetTime;
-
-        fetchNextTidePair();
-      } catch (err) {
-        console.error('Weather or tide fetch error:', err);
-      }
+    
     }
 
     function updateTime() {
