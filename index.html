@@ -6,14 +6,15 @@
   <meta http-equiv="cache-control" content="no-cache" />
   <meta http-equiv="expires" content="0" />
   <meta http-equiv="pragma" content="no-cache" />
+
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+  
   <style>
     body {
       margin: 0;
       background: transparent;
       font-family: 'Open Sans', sans-serif;
       color: white;
-      -webkit-font-smoothing: antialiased;
     }
     .badge {
       display: flex;
@@ -21,7 +22,7 @@
       gap: 10px;
       padding: 16px;
       border-radius: 10px;
-      background: rgba(0, 0, 0, .1);
+      background: rgba(0, 0, 0, 100);
       min-width: 240px;
     }
     .row {
@@ -30,72 +31,50 @@
       gap: 10px;
     }
     .location {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: bold;
     }
     .temp, .time {
-      font-size: 16px;
-      font-weight: bold;
-    }
-    .info {
-      font-size: 16px;
-      font-weight: bold;
-      margin-top: 2px;
-      display: flex;
-      align-items: center;
-    }
-    .info img.icon {
-      width: 1em;
-      height: 1em;
-      margin-right: 6px;
-      vertical-align: middle;
-      filter: brightness(0) invert(1); /* Converts dark icons to white */
+      font-size: 15px;
     }
   </style>
 </head>
 <body>
   <div class="badge">
     <div class="row">
-    
+      <img id="icon" src="" alt="Weather Icon" width="36" height="36" />
       <div>
         <div class="location" id="location">Miami Beach</div>
         <div class="time" id="time">--:--</div>
-        <div class="row">
-          <img id="icon" src="" alt="Weather Icon" width="16" height="16" />
-  <div class="temp" id="temp">--°F</div>
-</div>
-      <div>
+        <div class="temp" id="temp">--°F</div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const API_KEY = '6f6de3f249f61942a63e42cd76f89252';
     const CITY = 'Miami Beach';
-        const format = dt => dt.toLocaleTimeString('en-US', {
-          timeZone: 'America/New_York',
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        });
-    }
 
     async function updateWeather() {
       try {
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY}`);
+        const res = await fetch(https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY});
         const data = await res.json();
 
-        const sunsetTime = new Date(data.sys.sunset * 1000).toLocaleTimeString('en-US', {
-          timeZone: 'America/New_York',
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        });
+        if (!data?.main?.temp || !data.name) throw new Error("Missing key data");
 
         document.getElementById('location').textContent = data.name;
-        document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°F`;
-        document.getElementById('icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-    
+        document.getElementById('temp').textContent = ${Math.round(data.main.temp)}°F;
+        document.getElementById('icon').src = data.weather?.[0]?.icon
+          ? https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png?v=${Date.now()}
+          : '';
+      } catch (err) {
+        console.error('Weather fetch error:', err);
+      }
     }
 
     function updateTime() {
-      document.getElementById('time').textContent = new Date().toLocaleTimeString('en-US', {
+      const now = new Date();
+      document.getElementById('time').textContent = now.toLocaleTimeString('en-US', {
         timeZone: 'America/New_York',
         hour: 'numeric',
         minute: '2-digit',
@@ -106,8 +85,8 @@
     document.addEventListener('DOMContentLoaded', () => {
       updateWeather();
       updateTime();
-      setInterval(updateWeather, 300000); // 5 min
-      setInterval(updateTime, 60000);     // 1 min
+      setInterval(updateTime, 60000);
+      setInterval(updateWeather, 300000);
     });
   </script>
 </body>
