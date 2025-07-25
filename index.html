@@ -49,6 +49,7 @@
       height: 1em;
       vertical-align: middle;
       fill: white;
+      margin-right: 6px;
     }
     .tidepair .tideblock {
       display: inline-flex;
@@ -72,18 +73,15 @@
         <div class="time" id="time">--:--</div>
         <div class="temp" id="temp">--°F</div>
 
-        <!-- SUNSET ICON INLINE -->
+        <!-- SUNSET ICON INLINE (FIXED) -->
         <div class="info">
           <svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-            <title>weather, summer, sunset, sun, sun rise, forecast, holiday</title>
-            <g id="sunset">
-              <path d="M16,15a7.0081,7.0081,0,0,0-7,7,1,1,0,0,0,1,1H22a1,1,0,0,0,1-1A7.0081,7.0081,0,0,0,16,15Z"/>
-              <path d="M16,13a1,1,0,0,0,1-1V10a1,1,0,0,0-2,0v2A1,1,0,0,0,16,13Z"/>
-              <path d="M9.6357,14.2217l-1.414-1.4141a1,1,0,1,0-1.4141,1.4141l1.4141,1.414a1,1,0,0,0,1.414-1.414Z"/>
-              <path d="M6,21H4a1,1,0,0,0,0,2H6a1,1,0,0,0,0-2Z"/>
-              <path d="M28,21H26a1,1,0,0,0,0,2h2a1,1,0,0,0,0-2Z"/>
-              <path d="M25.1924,12.8076a1,1,0,0,0-1.4141,0l-1.414,1.4141a1,1,0,0,0,1.414,1.414l1.4141-1.414A1,1,0,0,0,25.1924,12.8076Z"/>
-            </g>
+            <path d="M16,15a7.0081,7.0081,0,0,0-7,7,1,1,0,0,0,1,1H22a1,1,0,0,0,1-1A7.0081,7.0081,0,0,0,16,15Z"/>
+            <path d="M16,13a1,1,0,0,0,1-1V10a1,1,0,0,0-2,0v2A1,1,0,0,0,16,13Z"/>
+            <path d="M9.6357,14.2217l-1.414-1.4141a1,1,0,1,0-1.4141,1.4141l1.4141,1.414a1,1,0,0,0,1.414-1.414Z"/>
+            <path d="M6,21H4a1,1,0,0,0,0,2H6a1,1,0,0,0,0-2Z"/>
+            <path d="M28,21H26a1,1,0,0,0,0,2h2a1,1,0,0,0,0-2Z"/>
+            <path d="M25.1924,12.8076a1,1,0,0,0-1.4141,0l-1.414,1.4141a1,1,0,0,0,1.414,1.414l1.4141-1.414A1,1,0,0,0,25.1924,12.8076Z"/>
           </svg>
           <span id="sunset">--:--</span>
         </div>
@@ -146,10 +144,12 @@
           hour12: true
         });
 
+        const sunsetEl = document.getElementById('sunset');
+        if (sunsetEl) sunsetEl.textContent = sunsetTime;
+
         document.getElementById('location').textContent = data.name;
         document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°F`;
         document.getElementById('icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-        document.getElementById('sunset').textContent = sunsetTime;
 
         const tideHTML = await fetchNextTidePair();
         document.getElementById('tidepair').innerHTML = tideHTML;
@@ -170,8 +170,8 @@
     document.addEventListener('DOMContentLoaded', () => {
       updateWeather();
       updateTime();
-      setInterval(updateWeather, 300000); // 5 minutes
-      setInterval(updateTime, 60000);     // 1 minute
+      setInterval(updateWeather, 300000);
+      setInterval(updateTime, 60000);
     });
   </script>
 </body>
