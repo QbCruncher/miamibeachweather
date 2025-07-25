@@ -51,6 +51,11 @@
       vertical-align: middle;
       fill: white;
     }
+    .tidepair span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
   </style>
 </head>
 <body>
@@ -71,9 +76,8 @@
         </div>
 
         <!-- TIDE ICON INLINE -->
-        <div class="info">
-         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0,0,256,256" width="512px" height="512px" fill-rule="nonzero"><g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><g transform="translate(256,256.75) rotate(180) scale(8,8)"><path d="M16,4.09375l-0.71875,0.6875l-8.5,8.5l1.4375,1.4375l6.78125,-6.78125v20.0625h2v-20.0625l6.78125,6.78125l1.4375,-1.4375l-8.5,-8.5z"></path></g></g></svg>
-          <span id="tidepair">-- / --</span>
+        <div class="info tidepair" id="tidepair">
+          <!-- Filled dynamically -->
         </div>
 
       </div>
@@ -86,6 +90,11 @@
     const NOAA_STATION_ID = '8723170';
     const TIDES_URL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo`;
 
+    const tideIcons = {
+      H: `<svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 32 32" width="512px" height="512px"><path d="M 16 4.09375 L 15.28125 4.78125 L 6.78125 13.28125 L 8.21875 14.71875 L 15 7.9375 L 15 28 L 17 28 L 17 7.9375 L 23.78125 14.71875 L 25.21875 13.28125 L 16.71875 4.78125 Z"/></svg>`,
+      L: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="512px" height="512px" fill="#ffffff"><g transform="translate(256,256.75) rotate(180) scale(8,8)"><path d="M16,4.09375l-0.71875,0.6875l-8.5,8.5l1.4375,1.4375l6.78125,-6.78125v20.0625h2v-20.0625l6.78125,6.78125l1.4375,-1.4375l-8.5,-8.5z"></path></g></svg>`
+    };
+
     async function fetchNextTidePair() {
       try {
         const res = await fetch(TIDES_URL);
@@ -96,8 +105,7 @@
           .map(p => ({ ...p, dt: new Date(p.t.replace(' ', 'T')) }))
           .filter(p => p.dt > now);
 
-        const nextHigh = future.find(p => p.type === 'H');
-        const nextLow = future.find(p => p.type === 'L');
+        const nextTwo = future.slice(0, 2);
 
         const format = dt => dt.toLocaleTimeString('en-US', {
           timeZone: 'America/New_York',
@@ -106,12 +114,14 @@
           hour12: true
         });
 
-        const highStr = nextHigh ? format(nextHigh.dt) : '--';
-        const lowStr = nextLow ? format(nextLow.dt) : '--';
+        return nextTwo.map(tide => {
+          const icon = tideIcons[tide.type] || '';
+          const time = format(tide.dt).toLowerCase();
+          return `<span>${icon}${time}</span>`;
+        }).join('<span> / </span>');
 
-        return `${highStr} / ${lowStr}`;
       } catch {
-        return '-- / --';
+        return `<span>--</span><span> / </span><span>--</span>`;
       }
     }
 
@@ -132,8 +142,8 @@
         document.getElementById('icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
         document.getElementById('sunset').textContent = sunsetTime;
 
-        const tidePair = await fetchNextTidePair();
-        document.getElementById('tidepair').textContent = tidePair;
+        const tideHTML = await fetchNextTidePair();
+        document.getElementById('tidepair').innerHTML = tideHTML;
       } catch (err) {
         console.error('Weather or tide fetch error:', err);
       }
