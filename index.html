@@ -122,7 +122,7 @@
           const icon = tideIcons[tide.type] || '';
           const time = format(tide.dt);
           return `<span class="tideblock">${icon}${time}</span>`;
-        }).join(`<span class="divider">/</span>`);
+        }).join(`<span class="divider"></span>`);
       } catch {
         return `<span class="tideblock">--</span><span class="divider"></span><span class="tideblock">--</span>`;
       }
