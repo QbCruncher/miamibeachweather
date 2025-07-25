@@ -125,30 +125,34 @@
       }
     }
 
-    async function updateWeather() {
-      try {
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY}`);
-        const data = await res.json();
+    async function fetchNextTidePair() {
+  try {
+    const res = await fetch(TIDES_URL);
+    const data = await res.json();
+    const now = new Date();
 
-        const sunsetTime = new Date(data.sys.sunset * 1000).toLocaleTimeString('en-US', {
-          timeZone: 'America/New_York',
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        });
+    const future = data.predictions
+      .map(p => ({ ...p, dt: new Date(p.t.replace(' ', 'T')) }))
+      .filter(p => p.dt > now);
 
-        document.getElementById('location').textContent = data.name;
-        document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°F`;
-        document.getElementById('icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-        document.getElementById('sunset').textContent = sunsetTime;
+    const nextTwo = future.slice(0, 2);
 
-        const tideHTML = await fetchNextTidePair();
-        document.getElementById('tidepair').innerHTML = tideHTML;
-      } catch (err) {
-        console.error('Weather or tide fetch error:', err);
-      }
-    }
+    const format = dt => dt.toLocaleTimeString('en-US', {
+      timeZone: 'America/New_York',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).toLowerCase();
 
+    return nextTwo.map(tide => {
+      const icon = tideIcons[tide.type] || '';
+      const time = format(tide.dt);
+      return `<span class="tideblock">${icon}${time}</span>`;
+    }).join(`<span class="divider">/</span>`);
+  } catch {
+    return `<span class="tideblock">--</span><span class="divider">/</span><span class="tideblock">--</span>`;
+  }
+}
     function updateTime() {
       document.getElementById('time').textContent = new Date().toLocaleTimeString('en-US', {
         timeZone: 'America/New_York',
