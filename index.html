@@ -44,7 +44,7 @@
       display: flex;
       align-items: center;
     }
-    .info svg {
+    .info svg, .info img.moon {
       width: 1em;
       height: 1em;
       vertical-align: middle;
@@ -73,45 +73,86 @@
         <div class="time" id="time">--:--</div>
         <div class="temp" id="temp">--°F</div>
 
-        <!-- SUNSET ICON INLINE (FIXED) -->
         <div class="info">
-          <svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-            <path d="M16,15a7.0081,7.0081,0,0,0-7,7,1,1,0,0,0,1,1H22a1,1,0,0,0,1-1A7.0081,7.0081,0,0,0,16,15Z"/>
-            <path d="M16,13a1,1,0,0,0,1-1V10a1,1,0,0,0-2,0v2A1,1,0,0,0,16,13Z"/>
-            <path d="M9.6357,14.2217l-1.414-1.4141a1,1,0,1,0-1.4141,1.4141l1.4141,1.414a1,1,0,0,0,1.414-1.414Z"/>
-            <path d="M6,21H4a1,1,0,0,0,0,2H6a1,1,0,0,0,0-2Z"/>
-            <path d="M28,21H26a1,1,0,0,0,0,2h2a1,1,0,0,0,0-2Z"/>
-            <path d="M25.1924,12.8076a1,1,0,0,0-1.4141,0l-1.414,1.4141a1,1,0,0,0,1.414,1.414l1.4141-1.414A1,1,0,0,0,25.1924,12.8076Z"/>
-          </svg>
+          <span id="sunIconContainer">
+            <svg id="sun-icon" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+              <path d="M16,15a7.0081,7.0081,0,0,0-7,7,1,1,0,0,0,1,1H22a1,1,0,0,0,1-1A7.0081,7.0081,0,0,0,16,15Z"/>
+              <path d="M16,13a1,1,0,0,0,1-1V10a1,1,0,0,0-2,0v2A1,1,0,0,0,16,13Z"/>
+              <path d="M9.6357,14.2217l-1.414-1.4141a1,1,0,1,0-1.4141,1.4141l1.4141,1.414a1,1,0,0,0,1.414-1.414Z"/>
+              <path d="M6,21H4a1,1,0,0,0,0,2H6a1,1,0,0,0,0-2Z"/>
+              <path d="M28,21H26a1,1,0,0,0,0,2h2a1,1,0,0,0,0-2Z"/>
+              <path d="M25.1924,12.8076a1,1,0,0,0-1.4141,0l-1.414,1.4141a1,1,0,0,0,1.414,1.414l1.4141-1.414A1,1,0,0,0,25.1924,12.8076Z"/>
+            </svg>
+          </span>
           <span id="sunset">--:--</span>
         </div>
 
-        <!-- TIDE ICON INLINE -->
         <div class="info tidepair" id="tidepair"></div>
       </div>
     </div>
   </div>
 
   <script>
-    const API_KEY = '6f6de3f249f61942a63e42cd76f89252';
-    const CITY = 'Miami Beach';
     const NOAA_STATION_ID = '8723170';
-    const TIDES_URL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo`;
+    const API_KEY = '6f6de3f249f61942a63e42cd76f89252'; // Used for both OpenWeatherMap and WeatherAPI
+    const OPENWEATHER_API = `https://api.openweathermap.org/data/2.5/weather?q=Miami%20Beach&units=imperial&appid=${API_KEY}`;
+    const WEATHERAPI_URL = 'https://api.weatherapi.com/v1/astronomy.json';
 
-    const tideIcons = {
-      H: `<svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="512px" height="512px"><path d="M 16 4.09375 L 15.28125 4.78125 L 6.78125 13.28125 L 8.21875 14.71875 L 15 7.9375 L 15 28 L 17 28 L 17 7.9375 L 23.78125 14.71875 L 25.21875 13.28125 L 16.71875 4.78125 Z"/></svg>`,
-      L: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="512px" height="512px" fill="#ffffff"><g transform="translate(256,256.75) rotate(180) scale(8,8)"><path d="M16,4.09375l-0.71875,0.6875l-8.5,8.5l1.4375,1.4375l6.78125,-6.78125v20.0625h2v-20.0625l6.78125,6.78125l1.4375,-1.4375l-8.5,-8.5z"></path></g></svg>`
+    const moonIcons = {
+      "New Moon": "🌑", "Waxing Crescent": "🌒", "First Quarter": "🌓",
+      "Waxing Gibbous": "🌔", "Full Moon": "🌕", "Waning Gibbous": "🌖",
+      "Last Quarter": "🌗", "Waning Crescent": "🌘"
     };
+
+    async function updateWeather() {
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+
+      const [weatherRes, astroRes] = await Promise.all([
+        fetch(OPENWEATHER_API),
+        fetch(`${WEATHERAPI_URL}?key=${API_KEY}&q=Miami&dt=${today}`)
+      ]);
+
+      const weather = await weatherRes.json();
+      const astro = await astroRes.json();
+      const sunrise = new Date(`${today}T${astro.astronomy.astro.sunrise}`);
+      const sunset = new Date(`${today}T${astro.astronomy.astro.sunset}`);
+      const isNight = now >= sunset || now < sunrise;
+
+      document.getElementById('location').textContent = weather.name || "Miami Beach";
+      document.getElementById('temp').textContent = `${Math.round(weather.main.temp)}°F`;
+
+      const iconEl = document.getElementById('icon');
+      const iconBox = document.getElementById('sunIconContainer');
+
+      if (isNight) {
+        iconEl.style.display = 'none';
+        const moon = astro.astronomy.astro.moon_phase;
+        iconBox.innerHTML = `<span style="font-size: 1.2em;">${moonIcons[moon] || '🌙'}</span>`;
+        document.getElementById("sunset").textContent = astro.astronomy.astro.sunrise.toLowerCase();
+      } else {
+        iconEl.style.display = 'inline';
+        iconEl.src = `https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`;
+        iconBox.innerHTML = document.getElementById("sun-icon").outerHTML;
+        document.getElementById("sunset").textContent = astro.astronomy.astro.sunset.toLowerCase();
+      }
+    }
 
     async function fetchNextTidePair() {
       try {
-        const res = await fetch(TIDES_URL);
-        const data = await res.json();
         const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        const tomorrow = new Date(now);
+        tomorrow.setDate(now.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+        const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo&begin_date=${today}&end_date=${tomorrowStr}`);
+        const data = await res.json();
 
         const future = data.predictions
           .map(p => ({ ...p, dt: new Date(p.t.replace(' ', 'T')) }))
-          .filter(p => p.dt > now);
+          .filter(p => p.dt > now)
+          .sort((a, b) => a.dt - b.dt);
 
         const nextTwo = future.slice(0, 2);
 
@@ -123,38 +164,12 @@
         }).toLowerCase();
 
         return nextTwo.map(tide => {
-          const icon = tideIcons[tide.type] || '';
+          const icon = tide.type === 'H' ? '⬆️' : '⬇️';
           const time = format(tide.dt);
-          return `<span class="tideblock">${icon}${time}</span>`;
+          return `<span class="tideblock">${icon} ${time}</span>`;
         }).join(`<span class="divider"></span>`);
       } catch {
         return `<span class="tideblock">--</span><span class="divider"></span><span class="tideblock">--</span>`;
-      }
-    }
-
-    async function updateWeather() {
-      try {
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CITY)}&units=imperial&appid=${API_KEY}`);
-        const data = await res.json();
-
-        const sunsetTime = new Date(data.sys.sunset * 1000).toLocaleTimeString('en-US', {
-          timeZone: 'America/New_York',
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        });
-
-        const sunsetEl = document.getElementById('sunset');
-        if (sunsetEl) sunsetEl.textContent = sunsetTime;
-
-        document.getElementById('location').textContent = data.name;
-        document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°F`;
-        document.getElementById('icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-
-        const tideHTML = await fetchNextTidePair();
-        document.getElementById('tidepair').innerHTML = tideHTML;
-      } catch (err) {
-        console.error('Weather or tide fetch error:', err);
       }
     }
 
@@ -167,8 +182,9 @@
       });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      updateWeather();
+    document.addEventListener('DOMContentLoaded', async () => {
+      await updateWeather();
+      document.getElementById('tidepair').innerHTML = await fetchNextTidePair();
       updateTime();
       setInterval(updateWeather, 300000);
       setInterval(updateTime, 60000);
