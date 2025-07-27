@@ -55,9 +55,6 @@
       display: inline-flex;
       align-items: center;
     }
-    .tidepair .tideblock svg {
-      margin-right: 0;
-    }
     .tidepair .divider {
       display: inline-block;
       width: 10px;
@@ -94,7 +91,7 @@
 
   <script>
     const NOAA_STATION_ID = '8723170';
-    const API_KEY = '6f6de3f249f61942a63e42cd76f89252'; // Used for both OpenWeatherMap and WeatherAPI
+    const API_KEY = '6f6de3f249f61942a63e42cd76f89252';
     const OPENWEATHER_API = `https://api.openweathermap.org/data/2.5/weather?q=Miami%20Beach&units=imperial&appid=${API_KEY}`;
     const WEATHERAPI_URL = 'https://api.weatherapi.com/v1/astronomy.json';
 
@@ -103,6 +100,47 @@
       "Waxing Gibbous": "🌔", "Full Moon": "🌕", "Waning Gibbous": "🌖",
       "Last Quarter": "🌗", "Waning Crescent": "🌘"
     };
+
+    function parseNoaaTime(tstr) {
+      const [date, time] = tstr.split(' ');
+      const [y, m, d] = date.split('-').map(Number);
+      const [h, min] = time.split(':').map(Number);
+      return new Date(Date.UTC(y, m - 1, d, h + 4, min)); // force to EDT (UTC-4)
+    }
+
+    async function fetchNextTidePair() {
+      try {
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        const tomorrow = new Date(now);
+        tomorrow.setDate(now.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+        const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo&begin_date=${today}&end_date=${tomorrowStr}`);
+        const data = await res.json();
+
+        const future = data.predictions
+          .map(p => ({ ...p, dt: parseNoaaTime(p.t) }))
+          .filter(p => p.dt > now)
+          .sort((a, b) => a.dt - b.dt)
+          .slice(0, 2);
+
+        const format = dt => dt.toLocaleTimeString('en-US', {
+          timeZone: 'America/New_York',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        }).toLowerCase();
+
+        return future.map(tide => {
+          const icon = tide.type === 'H' ? '⬆️' : '⬇️';
+          const time = format(tide.dt);
+          return `<span class="tideblock">${icon} ${time}</span>`;
+        }).join(`<span class="divider"></span>`);
+      } catch {
+        return `<span class="tideblock">--</span><span class="divider"></span><span class="tideblock">--</span>`;
+      }
+    }
 
     async function updateWeather() {
       const now = new Date();
@@ -135,41 +173,6 @@
         iconEl.src = `https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`;
         iconBox.innerHTML = document.getElementById("sun-icon").outerHTML;
         document.getElementById("sunset").textContent = astro.astronomy.astro.sunset.toLowerCase();
-      }
-    }
-
-    async function fetchNextTidePair() {
-      try {
-        const now = new Date();
-        const today = now.toISOString().split('T')[0];
-        const tomorrow = new Date(now);
-        tomorrow.setDate(now.getDate() + 1);
-        const tomorrowStr = tomorrow.toISOString().split('T')[0];
-
-        const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo&begin_date=${today}&end_date=${tomorrowStr}`);
-        const data = await res.json();
-
-        const future = data.predictions
-          .map(p => ({ ...p, dt: new Date(p.t.replace(' ', 'T')) }))
-          .filter(p => p.dt > now)
-          .sort((a, b) => a.dt - b.dt);
-
-        const nextTwo = future.slice(0, 2);
-
-        const format = dt => dt.toLocaleTimeString('en-US', {
-          timeZone: 'America/New_York',
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        }).toLowerCase();
-
-        return nextTwo.map(tide => {
-          const icon = tide.type === 'H' ? '⬆️' : '⬇️';
-          const time = format(tide.dt);
-          return `<span class="tideblock">${icon} ${time}</span>`;
-        }).join(`<span class="divider"></span>`);
-      } catch {
-        return `<span class="tideblock">--</span><span class="divider"></span><span class="tideblock">--</span>`;
       }
     }
 
