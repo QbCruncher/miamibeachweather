@@ -33,22 +33,29 @@
       font-size: 15px;
       font-weight: bold;
     }
-    .temp, .time {
+    .temp-container {
+      position: relative;
+      height: 1em;
       font-size: 15px;
       font-weight: bold;
-    }
-    .temp {
-      display: flex;
-      align-items: center;
-      margin-left: 26px; /* Align the first digit with the sun time */
+      line-height: 1em;
+      margin-bottom: 2px;
     }
     #icon {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
       width: 18px;
       height: 18px;
-      margin-right: 4px;
     }
     #temp {
-      margin-left: 3px;
+      margin-left: 22px;
+      display: inline-block;
+    }
+    .time {
+      font-size: 15px;
+      font-weight: bold;
     }
     .info {
       font-size: 15px;
@@ -83,7 +90,7 @@
       <div>
         <div class="location" id="location">Miami Beach</div>
         <div class="time" id="time">--:--</div>
-        <div class="temp">
+        <div class="temp-container">
           <img id="icon" src="" alt="Weather Icon" />
           <span id="temp">--°F</span>
         </div>
@@ -107,7 +114,7 @@
     </div>
   </div>
 
-  <!-- SVGs for tide icons -->
+  <!-- SVGs for tides -->
   <template id="highTideIcon">
     <svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="16" height="16">
       <path d="M 16 4.09375 L 15.28125 4.78125 L 6.78125 13.28125 L 8.21875 14.71875 L 15 7.9375 L 15 28 L 17 28 L 17 7.9375 L 23.78125 14.71875 L 25.21875 13.28125 L 16.71875 4.78125 Z"/>
