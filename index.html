@@ -55,9 +55,12 @@
       display: inline-flex;
       align-items: center;
     }
+    .tidepair .tideblock svg {
+      margin-right: 6px;
+    }
     .tidepair .divider {
       display: inline-block;
-      width: 0px;
+      width: 10px;
     }
   </style>
 </head>
@@ -89,7 +92,7 @@
     </div>
   </div>
 
-  <!-- Inline SVGs for tide icons -->
+  <!-- Inline SVG icons for tide types -->
   <template id="highTideIcon">
     <svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="16" height="16">
       <path d="M 16 4.09375 L 15.28125 4.78125 L 6.78125 13.28125 L 8.21875 14.71875 L 15 7.9375 L 15 28 L 17 28 L 17 7.9375 L 23.78125 14.71875 L 25.21875 13.28125 L 16.71875 4.78125 Z"/>
@@ -143,20 +146,23 @@
 
         const current = data.current;
         const daily = data.daily[0];
-        const isNight = now / 1000 < current.sunrise || now / 1000 > current.sunset;
+
+        const sunset = current.sunset * 1000;
+        const sunrise = current.sunrise * 1000;
+        const showSunrise = now > (sunset + 60 * 60 * 1000);
 
         document.getElementById('temp').textContent = `${Math.round(current.temp)}°F`;
 
-        if (isNight) {
+        if (now < sunrise || now > sunset) {
           iconEl.style.display = 'none';
           iconBox.innerHTML = `<span style="font-size: 1.2em;">${moonEmoji(daily.moon_phase)}</span>`;
-          document.getElementById("sunset").textContent = formatTime(current.sunrise);
         } else {
           iconEl.style.display = 'inline';
           iconEl.src = `https://openweathermap.org/img/wn/${current.weather[0].icon}@2x.png`;
           iconBox.innerHTML = document.getElementById("sun-icon").outerHTML;
-          document.getElementById("sunset").textContent = formatTime(current.sunset);
         }
+
+        document.getElementById("sunset").textContent = formatTime(showSunrise ? current.sunrise : current.sunset);
       } catch (e) {
         console.error("Weather error", e);
       }
@@ -212,8 +218,8 @@
       await updateWeather();
       document.getElementById('tidepair').innerHTML = await fetchNextTidePair();
       updateTime();
-      setInterval(updateWeather, 300000); // every 5 minutes
-      setInterval(updateTime, 60000); // every minute
+      setInterval(updateWeather, 300000);
+      setInterval(updateTime, 60000);
     });
   </script>
 </body>
