@@ -32,17 +32,17 @@
     .location {
       font-size: 15px;
       font-weight: bold;
-      margin-bottom: 4px;
     }
     .time, .temp {
       font-size: 15px;
       font-weight: bold;
-      margin-bottom: 2px;
     }
     .temp-container {
       position: relative;
+      height: 1em;
       font-size: 15px;
       font-weight: bold;
+      line-height: 1em;
       margin-bottom: 2px;
     }
     #icon {
@@ -50,11 +50,11 @@
       left: 0;
       top: 50%;
       transform: translateY(-50%);
-      width: 15px;
-      height: 15px;
+      width: 18px;
+      height: 18px;
     }
     #temp {
-      margin-left: 21px;
+      margin-left: 22px;
     }
     .info {
       font-size: 15px;
@@ -70,16 +70,13 @@
       fill: white;
       margin-right: 6px;
     }
-    .tidepair .tideblock {
-      display: inline-flex;
+    .tideblock {
+      display: flex;
       align-items: center;
+      margin-top: 2px;
     }
-    .tidepair .tideblock svg {
-      margin-right: 0px;
-    }
-    .tidepair .divider {
-      display: inline-block;
-      width: 5px;
+    .tideblock svg {
+      margin-right: 6px;
     }
   </style>
 </head>
@@ -108,12 +105,13 @@
           <span id="sunset">--:--</span>
         </div>
 
-        <div class="info tidepair" id="tidepair"></div>
+        <div class="info tideblock" id="tide1"></div>
+        <div class="info tideblock" id="tide2"></div>
       </div>
     </div>
   </div>
 
-  <!-- SVGs -->
+  <!-- Inline SVG icons for tides -->
   <template id="highTideIcon">
     <svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="16" height="16">
       <path d="M 16 4.09375 L 15.28125 4.78125 L 6.78125 13.28125 L 8.21875 14.71875 L 15 7.9375 L 15 28 L 17 28 L 17 7.9375 L 23.78125 14.71875 L 25.21875 13.28125 L 16.71875 4.78125 Z"/>
@@ -212,17 +210,15 @@
           hour12: true
         }).toLowerCase();
 
-        document.getElementById('tidepair').innerHTML = future.map(tide => {
-          const icon = tide.type === 'H'
-            ? document.getElementById('highTideIcon').innerHTML
-            : document.getElementById('lowTideIcon').innerHTML;
-          const time = format(tide.dt);
-          return `<span class="tideblock">${icon} ${time}</span>`;
-        }).join(`<span class="divider"></span>`);
+        const block1 = future[0] ? `<span class="tideblock">${future[0].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${format(future[0].dt)}</span>` : '';
+        const block2 = future[1] ? `<span class="tideblock">${future[1].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${format(future[1].dt)}</span>` : '';
+
+        document.getElementById('tide1').innerHTML = block1;
+        document.getElementById('tide2').innerHTML = block2;
       } catch (err) {
         console.error("Tide fetch error", err);
-        document.getElementById('tidepair').innerHTML =
-          `<span class="tideblock">--</span><span class="divider"></span><span class="tideblock">--</span>`;
+        document.getElementById('tide1').innerHTML = `<span class="tideblock">--</span>`;
+        document.getElementById('tide2').innerHTML = `<span class="tideblock">--</span>`;
       }
     }
 
