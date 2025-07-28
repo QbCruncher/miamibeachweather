@@ -33,6 +33,10 @@
       font-size: 15px;
       font-weight: bold;
     }
+    .time, .temp {
+      font-size: 15px;
+      font-weight: bold;
+    }
     .temp-container {
       position: relative;
       height: 1em;
@@ -40,6 +44,7 @@
       font-weight: bold;
       line-height: 1em;
       margin-bottom: 2px;
+      margin-left: 26px;
     }
     #icon {
       position: absolute;
@@ -51,11 +56,6 @@
     }
     #temp {
       margin-left: 22px;
-      display: inline-block;
-    }
-    .time {
-      font-size: 15px;
-      font-weight: bold;
     }
     .info {
       font-size: 15px;
@@ -63,6 +63,7 @@
       margin-top: 2px;
       display: flex;
       align-items: center;
+      margin-left: 26px;
     }
     .info svg, .info img.moon {
       width: 1em;
@@ -76,11 +77,11 @@
       align-items: center;
     }
     .tidepair .tideblock svg {
-      margin-right: 0px;
+      margin-right: 6px;
     }
     .tidepair .divider {
       display: inline-block;
-      width: 5px;
+      width: 10px;
     }
   </style>
 </head>
@@ -95,7 +96,7 @@
           <span id="temp">--°F</span>
         </div>
 
-        <div class="info">
+        <div class="info" id="sunline">
           <span id="sunIconContainer">
             <svg id="sun-icon" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
               <path d="M16,15a7.0081,7.0081,0,0,0-7,7,1,1,0,0,0,1,1H22a1,1,0,0,0,1-1A7.0081,7.0081,0,0,0,16,15Z"/>
@@ -114,7 +115,6 @@
     </div>
   </div>
 
-  <!-- SVGs for tides -->
   <template id="highTideIcon">
     <svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="16" height="16">
       <path d="M 16 4.09375 L 15.28125 4.78125 L 6.78125 13.28125 L 8.21875 14.71875 L 15 7.9375 L 15 28 L 17 28 L 17 7.9375 L 23.78125 14.71875 L 25.21875 13.28125 L 16.71875 4.78125 Z"/>
@@ -213,7 +213,7 @@
           hour12: true
         }).toLowerCase();
 
-        return future.map(tide => {
+        document.getElementById('tidepair').innerHTML = future.map(tide => {
           const icon = tide.type === 'H'
             ? document.getElementById('highTideIcon').innerHTML
             : document.getElementById('lowTideIcon').innerHTML;
@@ -222,7 +222,8 @@
         }).join(`<span class="divider"></span>`);
       } catch (err) {
         console.error("Tide fetch error", err);
-        return `<span class="tideblock">--</span><span class="divider"></span><span class="tideblock">--</span>`;
+        document.getElementById('tidepair').innerHTML =
+          `<span class="tideblock">--</span><span class="divider"></span><span class="tideblock">--</span>`;
       }
     }
 
@@ -237,7 +238,7 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       await updateWeather();
-      document.getElementById('tidepair').innerHTML = await fetchNextTidePair();
+      await fetchNextTidePair();
       updateTime();
       setInterval(updateWeather, 300000);
       setInterval(updateTime, 60000);
