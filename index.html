@@ -89,9 +89,24 @@
     </div>
   </div>
 
+  <!-- Inline SVGs for tide icons -->
+  <template id="highTideIcon">
+    <svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="16" height="16">
+      <path d="M 16 4.09375 L 15.28125 4.78125 L 6.78125 13.28125 L 8.21875 14.71875 L 15 7.9375 L 15 28 L 17 28 L 17 7.9375 L 23.78125 14.71875 L 25.21875 13.28125 L 16.71875 4.78125 Z"/>
+    </svg>
+  </template>
+
+  <template id="lowTideIcon">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="16" height="16" fill="#ffffff">
+      <g transform="translate(256,256.75) rotate(180) scale(8,8)">
+        <path d="M16,4.09375l-0.71875,0.6875l-8.5,8.5l1.4375,1.4375l6.78125,-6.78125v20.0625h2v-20.0625l6.78125,6.78125l1.4375,-1.4375l-8.5,-8.5z"></path>
+      </g>
+    </svg>
+  </template>
+
   <script>
     const NOAA_STATION_ID = '8723170';
-    const API_KEY = 'e9dabf44350c45eec681bf90b356e232'; // replace with your working One Call 3.0 key
+    const API_KEY = 'e9dabf44350c45eec681bf90b356e232';
     const LAT = 25.7906;
     const LON = -80.1300;
 
@@ -128,7 +143,6 @@
 
         const current = data.current;
         const daily = data.daily[0];
-
         const isNight = now / 1000 < current.sunrise || now / 1000 > current.sunset;
 
         document.getElementById('temp').textContent = `${Math.round(current.temp)}°F`;
@@ -173,7 +187,9 @@
         }).toLowerCase();
 
         return future.map(tide => {
-          const icon = tide.type === 'H' ? '⬆️' : '⬇️';
+          const icon = tide.type === 'H'
+            ? document.getElementById('highTideIcon').innerHTML
+            : document.getElementById('lowTideIcon').innerHTML;
           const time = format(tide.dt);
           return `<span class="tideblock">${icon} ${time}</span>`;
         }).join(`<span class="divider"></span>`);
