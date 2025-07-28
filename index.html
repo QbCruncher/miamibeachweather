@@ -37,6 +37,19 @@
       font-size: 15px;
       font-weight: bold;
     }
+    .temp {
+      display: flex;
+      align-items: center;
+      margin-left: 26px; /* Align the first digit with the sun time */
+    }
+    #icon {
+      width: 18px;
+      height: 18px;
+      margin-right: 4px;
+    }
+    #temp {
+      margin-left: 3px;
+    }
     .info {
       font-size: 15px;
       font-weight: bold;
@@ -71,7 +84,7 @@
         <div class="location" id="location">Miami Beach</div>
         <div class="time" id="time">--:--</div>
         <div class="temp">
-          <img id="icon" src="" alt="Weather Icon" width="18" height="18" style="vertical-align: middle; margin-right: 6px;" />
+          <img id="icon" src="" alt="Weather Icon" />
           <span id="temp">--°F</span>
         </div>
 
@@ -94,7 +107,7 @@
     </div>
   </div>
 
-  <!-- Tide icons -->
+  <!-- SVGs for tide icons -->
   <template id="highTideIcon">
     <svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="16" height="16">
       <path d="M 16 4.09375 L 15.28125 4.78125 L 6.78125 13.28125 L 8.21875 14.71875 L 15 7.9375 L 15 28 L 17 28 L 17 7.9375 L 23.78125 14.71875 L 25.21875 13.28125 L 16.71875 4.78125 Z"/>
