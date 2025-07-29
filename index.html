@@ -59,7 +59,7 @@
       display: flex;
       align-items: center;
     }
-    .info svg, .info img.moon {
+    .info svg {
       width: 1em;
       height: 1em;
       vertical-align: middle;
@@ -88,7 +88,8 @@
         </div>
         <div class="info" id="sunline">
           <span id="sunIconContainer">
-            <svg id="sun-icon" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+            <!-- Shared sunrise/sunset icon -->
+            <svg id="sunrisesunset" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
               <path d="M16,15a7.0081,7.0081,0,0,0-7,7,1,1,0,0,0,1,1H22a1,1,0,0,0,1-1A7.0081,7.0081,0,0,0,16,15Z"/>
               <path d="M16,13a1,1,0,0,0,1-1V10a1,1,0,0,0-2,0v2A1,1,0,0,0,16,13Z"/>
               <path d="M9.6357,14.2217l-1.414-1.4141a1,1,0,1,0-1.4141,1.4141l1.4141,1.414a1,1,0,0,0,1.414-1.414Z"/>
@@ -97,7 +98,7 @@
               <path d="M25.1924,12.8076a1,1,0,0,0-1.4141,0l-1.414,1.4141a1,1,0,0,0,1.414,1.414l1.4141-1.414A1,1,0,0,0,25.1924,12.8076Z"/>
             </svg>
           </span>
-          <span id="sunset">--:--</span>
+          <span id="sunTime">--:--</span>
         </div>
         <div class="info tideblock" id="tide1">--</div>
         <div class="info tideblock" id="tide2">--</div>
@@ -126,19 +127,6 @@
     const LAT = 25.7906;
     const LON = -80.1300;
 
-    const moonEmojis = ["🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘"];
-
-    function moonEmoji(phase) {
-      if (phase < 0.125) return moonEmojis[0];
-      if (phase < 0.25) return moonEmojis[1];
-      if (phase < 0.375) return moonEmojis[2];
-      if (phase < 0.5) return moonEmojis[3];
-      if (phase < 0.625) return moonEmojis[4];
-      if (phase < 0.75) return moonEmojis[5];
-      if (phase < 0.875) return moonEmojis[6];
-      return moonEmojis[7];
-    }
-
     function formatTime(dt) {
       return dt.toLocaleTimeString('en-US', {
         timeZone: 'America/New_York',
@@ -154,26 +142,19 @@
       const data = await res.json();
 
       const iconEl = document.getElementById('icon');
-      const iconBox = document.getElementById('sunIconContainer');
       const current = data.current;
       const daily = data.daily[0];
 
-      const sunset = current.sunset * 1000;
-      const sunrise = current.sunrise * 1000;
-      const showSunrise = now > (sunset + 60 * 60 * 1000);
-
       document.getElementById('temp').textContent = `${Math.round(current.temp)}°F`;
+      iconEl.src = `https://openweathermap.org/img/wn/${current.weather[0].icon}@2x.png`;
 
-      if (now < sunrise || now > sunset) {
-        iconEl.style.display = 'none';
-        iconBox.innerHTML = `<span style="font-size: 1.2em;">${moonEmoji(daily.moon_phase)}</span>`;
-      } else {
-        iconEl.style.display = 'inline';
-        iconEl.src = `https://openweathermap.org/img/wn/${current.weather[0].icon}@2x.png`;
-        iconBox.innerHTML = document.getElementById("sun-icon").outerHTML;
-      }
+      const nowTime = new Date();
+      const sunrise = new Date(daily.sunrise * 1000);
+      const sunset = new Date(daily.sunset * 1000);
+      const showSunrise = nowTime > sunset || nowTime < sunrise;
+      const timeToShow = showSunrise ? sunrise : sunset;
 
-      document.getElementById("sunset").textContent = formatTime(new Date(showSunrise ? sunrise : sunset));
+      document.getElementById("sunTime").textContent = formatTime(timeToShow);
     }
 
     async function fetchNextTidePair() {
@@ -187,7 +168,7 @@
       const data = await res.json();
 
       const future = data.predictions
-        .map(p => ({ ...p, dt: new Date(p.t + ' EDT') }))
+        .map(p => ({ ...p, dt: new Date(p.t) }))
         .filter(p => p.dt > now)
         .sort((a, b) => a.dt - b.dt)
         .slice(0, 2);
@@ -195,12 +176,19 @@
       const el1 = document.getElementById('tide1');
       const el2 = document.getElementById('tide2');
 
+      const format = dt => dt.toLocaleTimeString('en-US', {
+        timeZone: 'America/New_York',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }).toLowerCase();
+
       el1.innerHTML = future[0]
-        ? `${future[0].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${formatTime(future[0].dt)}`
+        ? `${future[0].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${format(future[0].dt)}`
         : '--';
 
       el2.innerHTML = future[1]
-        ? `${future[1].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${formatTime(future[1].dt)}`
+        ? `${future[1].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${format(future[1].dt)}`
         : '--';
     }
 
