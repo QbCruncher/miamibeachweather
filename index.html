@@ -194,7 +194,7 @@
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
-      }).toLowerCase();
+      }).toLowerCase(); + ' ET';
 
       document.getElementById('tide1').innerHTML = nextTwo[0]
         ? `${nextTwo[0].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${format(nextTwo[0].dt)}`
