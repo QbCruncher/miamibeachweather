@@ -8,12 +8,6 @@
   <meta http-equiv="pragma" content="no-cache" />
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
   <style>
-    #colon {
-    animation: blink 1s steps(2, start) infinite;
-    }
-    @keyframes blink {
-    to { visibility: hidden; }
-    }
     body {
       margin: 0;
       background: transparent;
@@ -98,11 +92,7 @@
     <div class="row">
       <div>
         <div class="location" id="location">Miami Beach</div>
-        <div class="time" id="time">
-        <span id="hours">--</span>
-        <span id="colon">:</span>
-        <span id="minutes">--</span>
-        <span id="ampm">--</span>
+        <div class="time" id="time">--:--</div>
         <div class="temp-container">
           <img id="icon" src="" alt="Weather Icon" />
           <span id="temp">--°F</span>
@@ -139,6 +129,7 @@
       </g>
     </svg>
   </template>
+
   <script>
     const NOAA_STATION_ID = '8723170';
     const API_KEY = 'e9dabf44350c45eec681bf90b356e232';
@@ -214,21 +205,14 @@
         : '--';
     }
 
-      function updateTime() {
-      const now = new Date().toLocaleTimeString('en-US', {
-      timeZone: 'America/New_York',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
+    function updateTime() {
+      document.getElementById('time').textContent = new Date().toLocaleTimeString('en-US', {
+        timeZone: 'America/New_York',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
       });
-
-      const [h, mWithAMPM] = now.split(':');
-      const [m, ampm] = mWithAMPM.split(' ');
-
-      document.getElementById('hours').textContent = h;
-      document.getElementById('minutes').textContent = m;
-      document.getElementById('ampm').textContent = ` ${ampm}`;
-}
+    }
 
     document.addEventListener('DOMContentLoaded', async () => {
       updateTime();
