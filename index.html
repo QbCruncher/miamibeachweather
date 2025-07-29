@@ -185,37 +185,45 @@
     tomorrow.setDate(now.getDate() + 1);
     const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-    const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo&begin_date=${today}&end_date=${tomorrowStr}`);
+    const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=8723170&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo&begin_date=${today}&end_date=${tomorrowStr}`);
     const data = await res.json();
 
-    const future = data.predictions
-      .map(p => {
-        const localTime = new Date(p.t + ' EDT'); // explicitly localize to Eastern
-        return { ...p, dt: localTime };
-      })
-      .filter(p => p.dt > now)
-      .sort((a, b) => a.dt - b.dt)
-      .slice(0, 2);
+    const tz = 'America/New_York';
+    const predictions = data.predictions.map(p => {
+      const [y, m, d] = p.t.split(' ')[0].split('-').map(Number);
+      const [h, min] = p.t.split(' ')[1].split(':').map(Number);
+      const dt = new Date(Date.UTC(y, m - 1, d, h, min));
+      return {
+        ...p,
+        dt: new Intl.DateTimeFormat('en-US', {
+          timeZone: tz,
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        }).format(dt),
+        raw: dt,
+        type: p.type
+      };
+    });
 
-    const format = dt => dt.toLocaleTimeString('en-US', {
-      timeZone: 'America/New_York',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    }).toLowerCase();
+    const future = predictions.filter(p => p.raw > now).slice(0, 2);
+
+    const icon = type =>
+      type === 'H'
+        ? document.getElementById('highTideIcon').innerHTML
+        : document.getElementById('lowTideIcon').innerHTML;
 
     document.getElementById('tide1').innerHTML = future[0]
-      ? `${future[0].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${format(future[0].dt)}`
+      ? `${icon(future[0].type)} ${future[0].dt.toLowerCase()}`
       : '--';
 
     document.getElementById('tide2').innerHTML = future[1]
-      ? `${future[1].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${format(future[1].dt)}`
+      ? `${icon(future[1].type)} ${future[1].dt.toLowerCase()}`
       : '--';
-
   } catch (err) {
-    console.error("Tide fetch error", err);
-    document.getElementById('tide1').innerHTML = `<span class="tideblock">--</span>`;
-    document.getElementById('tide2').innerHTML = `<span class="tideblock">--</span>`;
+    console.error("Tide fetch error:", err);
+    document.getElementById('tide1').innerHTML = '--';
+    document.getElementById('tide2').innerHTML = '--';
   }
 }
 
