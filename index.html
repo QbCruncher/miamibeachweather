@@ -32,7 +32,6 @@
     .location, .time, .temp {
       font-size: 15px;
       font-weight: bold;
-      margin-bottom: 4px;
     }
     .temp-container {
       position: relative;
@@ -40,18 +39,18 @@
       font-size: 15px;
       font-weight: bold;
       line-height: 1em;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
     #icon {
       position: absolute;
       left: 0;
       top: 50%;
       transform: translateY(-50%);
-      width: 15px;
-      height: 15px;
+      width: 18px;
+      height: 18px;
     }
     #temp {
-      margin-left: 21px;
+      margin-left: 22px;
     }
     .info {
       font-size: 15px;
@@ -106,15 +105,15 @@
     </div>
   </div>
 
-  <!-- Tide SVG templates -->
+  <!-- TIDE ICONS -->
   <template id="highTideIcon">
-    <svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="15" height="15">
+    <svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="16" height="16">
       <path d="M 16 4.09375 L 15.28125 4.78125 L 6.78125 13.28125 L 8.21875 14.71875 L 15 7.9375 L 15 28 L 17 28 L 17 7.9375 L 23.78125 14.71875 L 25.21875 13.28125 L 16.71875 4.78125 Z"/>
     </svg>
   </template>
 
   <template id="lowTideIcon">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="15" height="15" fill="#ffffff">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="16" height="16" fill="#ffffff">
       <g transform="translate(256,256.75) rotate(180) scale(8,8)">
         <path d="M16,4.09375l-0.71875,0.6875l-8.5,8.5l1.4375,1.4375l6.78125,-6.78125v20.0625h2v-20.0625l6.78125,6.78125l1.4375,-1.4375l-8.5,-8.5z"></path>
       </g>
@@ -167,7 +166,7 @@
 
       if (now < sunrise || now > sunset) {
         iconEl.style.display = 'none';
-        iconBox.innerHTML = `<span style="font-size: .8em;">${moonEmoji(daily.moon_phase)}</span>`;
+        iconBox.innerHTML = `<span style="font-size: 1.2em;">${moonEmoji(daily.moon_phase)}</span>`;
       } else {
         iconEl.style.display = 'inline';
         iconEl.src = `https://openweathermap.org/img/wn/${current.weather[0].icon}@2x.png`;
@@ -178,54 +177,32 @@
     }
 
     async function fetchNextTidePair() {
-  try {
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    const tomorrow = new Date(now);
-    tomorrow.setDate(now.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      const tomorrow = new Date(now);
+      tomorrow.setDate(now.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-    const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=8723170&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo&begin_date=${today}&end_date=${tomorrowStr}`);
-    const data = await res.json();
+      const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo&begin_date=${today}&end_date=${tomorrowStr}`);
+      const data = await res.json();
 
-    const tz = 'America/New_York';
-    const predictions = data.predictions.map(p => {
-      const [y, m, d] = p.t.split(' ')[0].split('-').map(Number);
-      const [h, min] = p.t.split(' ')[1].split(':').map(Number);
-      const dt = new Date(Date.UTC(y, m - 1, d, h, min));
-      return {
-        ...p,
-        dt: new Intl.DateTimeFormat('en-US', {
-          timeZone: tz,
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        }).format(dt),
-        raw: dt,
-        type: p.type
-      };
-    });
+      const future = data.predictions
+        .map(p => ({ ...p, dt: new Date(p.t + ' EDT') }))
+        .filter(p => p.dt > now)
+        .sort((a, b) => a.dt - b.dt)
+        .slice(0, 2);
 
-    const future = predictions.filter(p => p.raw > now).slice(0, 2);
+      const el1 = document.getElementById('tide1');
+      const el2 = document.getElementById('tide2');
 
-    const icon = type =>
-      type === 'H'
-        ? document.getElementById('highTideIcon').innerHTML
-        : document.getElementById('lowTideIcon').innerHTML;
+      el1.innerHTML = future[0]
+        ? `${future[0].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${formatTime(future[0].dt)}`
+        : '--';
 
-    document.getElementById('tide1').innerHTML = future[0]
-      ? `${icon(future[0].type)} ${future[0].dt.toLowerCase()}`
-      : '--';
-
-    document.getElementById('tide2').innerHTML = future[1]
-      ? `${icon(future[1].type)} ${future[1].dt.toLowerCase()}`
-      : '--';
-  } catch (err) {
-    console.error("Tide fetch error:", err);
-    document.getElementById('tide1').innerHTML = '--';
-    document.getElementById('tide2').innerHTML = '--';
-  }
-}
+      el2.innerHTML = future[1]
+        ? `${future[1].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${formatTime(future[1].dt)}`
+        : '--';
+    }
 
     function updateTime() {
       document.getElementById('time').textContent = new Date().toLocaleTimeString('en-US', {
