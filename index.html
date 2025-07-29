@@ -88,7 +88,6 @@
         </div>
         <div class="info" id="sunline">
           <span id="sunIconContainer">
-            <!-- Always show this icon for both sunrise/sunset -->
             <svg id="sunrisesunset" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
               <path d="M16,15a7.0081,7.0081,0,0,0-7,7,1,1,0,0,0,1,1H22a1,1,0,0,0,1-1A7.0081,7.0081,0,0,0,16,15Z"/>
               <path d="M16,13a1,1,0,0,0,1-1V10a1,1,0,0,0-2,0v2A1,1,0,0,0,16,13Z"/>
@@ -106,7 +105,6 @@
     </div>
   </div>
 
-  <!-- TIDE ICONS -->
   <template id="highTideIcon">
     <svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="16" height="16">
       <path d="M 16 4.09375 L 15.28125 4.78125 L 6.78125 13.28125 L 8.21875 14.71875 L 15 7.9375 L 15 28 L 17 28 L 17 7.9375 L 23.78125 14.71875 L 25.21875 13.28125 L 16.71875 4.78125 Z"/>
@@ -137,7 +135,6 @@
     }
 
     async function updateWeather() {
-      const now = Date.now();
       const res = await fetch(`https://api.openweathermap.org/data/3.0/onecall?lat=${LAT}&lon=${LON}&units=imperial&appid=${API_KEY}`);
       const data = await res.json();
 
