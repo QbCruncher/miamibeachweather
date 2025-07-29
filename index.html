@@ -105,6 +105,7 @@
     </div>
   </div>
 
+  <!-- TIDE ICONS -->
   <template id="highTideIcon">
     <svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="16" height="16">
       <path d="M 16 4.09375 L 15.28125 4.78125 L 6.78125 13.28125 L 8.21875 14.71875 L 15 7.9375 L 15 28 L 17 28 L 17 7.9375 L 23.78125 14.71875 L 25.21875 13.28125 L 16.71875 4.78125 Z"/>
@@ -165,13 +166,18 @@
       const data = await res.json();
 
       const future = data.predictions
-        .map(p => ({ ...p, dt: new Date(p.t.replace(' ', 'T')) }))
+        .map(p => {
+          const [dateStr, timeStr] = p.t.split(' ');
+          const [year, month, day] = dateStr.split('-').map(Number);
+          const [hour, minute] = timeStr.split(':').map(Number);
+          return {
+            dt: new Date(year, month - 1, day, hour, minute),
+            type: p.type
+          };
+        })
         .filter(p => p.dt > now)
         .sort((a, b) => a.dt - b.dt)
         .slice(0, 2);
-
-      const el1 = document.getElementById('tide1');
-      const el2 = document.getElementById('tide2');
 
       const format = dt => dt.toLocaleTimeString('en-US', {
         timeZone: 'America/New_York',
@@ -180,11 +186,11 @@
         hour12: true
       }).toLowerCase();
 
-      el1.innerHTML = future[0]
+      document.getElementById('tide1').innerHTML = future[0]
         ? `${future[0].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${format(future[0].dt)}`
         : '--';
 
-      el2.innerHTML = future[1]
+      document.getElementById('tide2').innerHTML = future[1]
         ? `${future[1].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${format(future[1].dt)}`
         : '--';
     }
