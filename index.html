@@ -173,7 +173,10 @@
           type: p.type
         };
       });
-
+console.log("NOW:", now.toLocaleString());
+tides.forEach(t => {
+  console.log(t.type, t.dt.toLocaleString(), t.dt > now ? "✅ FUTURE" : "❌ PAST");
+});
       const nextTwo = tides.filter(t => t.dt > now).slice(0, 2);
 
       const format = dt => dt.toLocaleTimeString('en-US', {
