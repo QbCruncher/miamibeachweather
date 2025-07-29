@@ -105,9 +105,55 @@
     </div>
   </div>
 
-  <!-- tide icons remain unchanged -->
+  <template id="highTideIcon">
+    <svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="16" height="16">
+      <path d="M 16 4.09375 L 15.28125 4.78125 L 6.78125 13.28125 L 8.21875 14.71875 L 15 7.9375 L 15 28 L 17 28 L 17 7.9375 L 23.78125 14.71875 L 25.21875 13.28125 L 16.71875 4.78125 Z"/>
+    </svg>
+  </template>
+
+  <template id="lowTideIcon">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="16" height="16" fill="#ffffff">
+      <g transform="translate(256,256.75) rotate(180) scale(8,8)">
+        <path d="M16,4.09375l-0.71875,0.6875l-8.5,8.5l1.4375,1.4375l6.78125,-6.78125v20.0625h2v-20.0625l6.78125,6.78125l1.4375,-1.4375l-8.5,-8.5z"></path>
+      </g>
+    </svg>
+  </template>
 
   <script>
+    const NOAA_STATION_ID = '8723170';
+    const API_KEY = 'e9dabf44350c45eec681bf90b356e232';
+    const LAT = 25.7906;
+    const LON = -80.1300;
+
+    function formatTime(dt) {
+      return dt.toLocaleTimeString('en-US', {
+        timeZone: 'America/New_York',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }).toLowerCase();
+    }
+
+    async function updateWeather() {
+      const res = await fetch(`https://api.openweathermap.org/data/3.0/onecall?lat=${LAT}&lon=${LON}&units=imperial&appid=${API_KEY}`);
+      const data = await res.json();
+
+      const iconEl = document.getElementById('icon');
+      const current = data.current;
+      const daily = data.daily[0];
+
+      document.getElementById('temp').textContent = `${Math.round(current.temp)}°F`;
+      iconEl.src = `https://openweathermap.org/img/wn/${current.weather[0].icon}@2x.png`;
+
+      const nowTime = new Date();
+      const sunrise = new Date(daily.sunrise * 1000);
+      const sunset = new Date(daily.sunset * 1000);
+      const showSunrise = nowTime > sunset || nowTime < sunrise;
+      const timeToShow = showSunrise ? sunrise : sunset;
+
+      document.getElementById("sunTime").textContent = formatTime(timeToShow);
+    }
+
     async function fetchNextTidePair() {
       const now = new Date();
       const yesterday = new Date(now);
@@ -117,7 +163,7 @@
       tomorrow.setDate(now.getDate() + 1);
       const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-      const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=8723170&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo&begin_date=${today}&end_date=${tomorrowStr}`);
+      const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo&begin_date=${today}&end_date=${tomorrowStr}`);
       const data = await res.json();
 
       const tides = data.predictions.map(p => {
@@ -147,6 +193,23 @@
         ? `${nextTwo[1].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${format(nextTwo[1].dt)}`
         : '--';
     }
+
+    function updateTime() {
+      document.getElementById('time').textContent = new Date().toLocaleTimeString('en-US', {
+        timeZone: 'America/New_York',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      updateTime();
+      await updateWeather();
+      await fetchNextTidePair();
+      setInterval(updateWeather, 300000);
+      setInterval(updateTime, 60000);
+    });
   </script>
 </body>
 </html>
