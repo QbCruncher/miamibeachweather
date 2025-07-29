@@ -178,32 +178,46 @@
     }
 
     async function fetchNextTidePair() {
-      const now = new Date();
-      const today = now.toISOString().split('T')[0];
-      const tomorrow = new Date(now);
-      tomorrow.setDate(now.getDate() + 1);
-      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  try {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-      const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo&begin_date=${today}&end_date=${tomorrowStr}`);
-      const data = await res.json();
+    const res = await fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=${NOAA_STATION_ID}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&interval=hilo&begin_date=${today}&end_date=${tomorrowStr}`);
+    const data = await res.json();
 
-      const future = data.predictions
-        .map(p => ({ ...p, dt: new Date(p.t.replace(' ', 'T')) }))
-        .filter(p => p.dt > now)
-        .sort((a, b) => a.dt - b.dt)
-        .slice(0, 2);
+    const future = data.predictions
+      .map(p => {
+        const localTime = new Date(p.t + ' EDT'); // explicitly localize to Eastern
+        return { ...p, dt: localTime };
+      })
+      .filter(p => p.dt > now)
+      .sort((a, b) => a.dt - b.dt)
+      .slice(0, 2);
 
-      const el1 = document.getElementById('tide1');
-      const el2 = document.getElementById('tide2');
+    const format = dt => dt.toLocaleTimeString('en-US', {
+      timeZone: 'America/New_York',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).toLowerCase();
 
-      el1.innerHTML = future[0]
-        ? `${future[0].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${formatTime(future[0].dt)}`
-        : '--';
+    document.getElementById('tide1').innerHTML = future[0]
+      ? `${future[0].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${format(future[0].dt)}`
+      : '--';
 
-      el2.innerHTML = future[1]
-        ? `${future[1].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${formatTime(future[1].dt)}`
-        : '--';
-    }
+    document.getElementById('tide2').innerHTML = future[1]
+      ? `${future[1].type === 'H' ? document.getElementById('highTideIcon').innerHTML : document.getElementById('lowTideIcon').innerHTML} ${format(future[1].dt)}`
+      : '--';
+
+  } catch (err) {
+    console.error("Tide fetch error", err);
+    document.getElementById('tide1').innerHTML = `<span class="tideblock">--</span>`;
+    document.getElementById('tide2').innerHTML = `<span class="tideblock">--</span>`;
+  }
+}
 
     function updateTime() {
       document.getElementById('time').textContent = new Date().toLocaleTimeString('en-US', {
