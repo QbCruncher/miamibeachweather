@@ -88,7 +88,7 @@
         </div>
         <div class="info" id="sunline">
           <span id="sunIconContainer">
-            <!-- Shared sunrise/sunset icon -->
+            <!-- Always show this icon for both sunrise/sunset -->
             <svg id="sunrisesunset" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
               <path d="M16,15a7.0081,7.0081,0,0,0-7,7,1,1,0,0,0,1,1H22a1,1,0,0,0,1-1A7.0081,7.0081,0,0,0,16,15Z"/>
               <path d="M16,13a1,1,0,0,0,1-1V10a1,1,0,0,0-2,0v2A1,1,0,0,0,16,13Z"/>
@@ -168,7 +168,7 @@
       const data = await res.json();
 
       const future = data.predictions
-        .map(p => ({ ...p, dt: new Date(p.t) }))
+        .map(p => ({ ...p, dt: new Date(p.t.replace(' ', 'T')) }))
         .filter(p => p.dt > now)
         .sort((a, b) => a.dt - b.dt)
         .slice(0, 2);
