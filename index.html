@@ -200,7 +200,11 @@
         hour12: true
       });
     }
-
+console.log("Current Time:", new Date());
+fetchNextTidePair().then(() => {
+  console.log("Fetched tide1:", document.getElementById("tide1").innerHTML);
+  console.log("Fetched tide2:", document.getElementById("tide2").innerHTML);
+});
     document.addEventListener('DOMContentLoaded', async () => {
       updateTime();
       await updateWeather();
